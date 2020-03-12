@@ -6,8 +6,11 @@ var dataProcessor = require('./dataProcessor.js');
 app.use(bodyParser.urlencoded({extended: false}))
 
 app.post('/login', (req,res)=> {
+    console.log(req.body)
     dataProcessor.isValidLogin(req.body.username,req.body.password)
         .then((result)=>{
+            console.log(result)
+            res.set({'Access-Control-Allow-Origin': '*'})
             res.send(result);
         })
 })

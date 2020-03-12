@@ -70,35 +70,30 @@ function getAttendanceJSON(html) {
         rows.each((i, row) => {
             if (!(($(row).children("td:nth-child(3)").text().trim() == 'N/A') || ($(row).children("td:nth-child(1)").text().trim() == "") || ($(row).children("td:nth-child(1)").text().trim() == "Subject Code"))) {
                 let attendance = {
-                    subjectCode: $(row).children("td:nth-child(1)").text().trim(),
-                    subject: $(row).children("td:nth-child(2)").text().trim(),//subjectName
-                    percentage: $(row).children("td:nth-child(4)").text().trim(),
+                    //subjectCode: $(row).children("td:nth-child(1)").text().trim(),
+                    s: $(row).children("td:nth-child(2)").text().trim(),//subjectName
+                    p: $(row).children("td:nth-child(4)").text().trim(), //percentage
                     totalClass: Number($(row).children("td:nth-child(3)").text().trim().split('/')[1]),
                     totalPresent: Number($(row).children("td:nth-child(3)").text().trim().split('/')[0])
                 }
                 toAttend = Math.ceil(((attendance['totalClass'] * 0.75) - attendance['totalPresent']) / 0.25);
                 if (toAttend > 0) {
                     if (toAttend > 1)
-                        attendance['calculatedClass'] = `Need to attend next ${toAttend} classes.`;
+                        attendance['c'] = `Need to attend next ${toAttend} classes.`;//calculatedClass
                     else
-                        attendance['calculatedClass'] = "Need to attend the next class.";
+                        attendance['c'] = "Need to attend the next class.";
                 } else if (toAttend === 0) {
-                    attendance['calculatedClass'] = "Perfectly balanced, but you can't miss next class.";
+                    attendance['c'] = "Perfectly balanced, but you can't miss next class.";
                 } else {
                     canMiss = Math.floor((attendance['totalPresent'] - 0.75 * attendance['totalClass']) / 0.75);
                     if (canMiss > 1)
-                        attendance['status'] = `You can cut next ${canMiss} classes.`;
+                        attendance['c'] = `You can cut next ${canMiss} classes.`;
                     else
-                        attendance['status'] = "You can cut the next class";
+                        attendance['c'] = "You can cut the next class";
                 }
-                percentage = attendance['percentage'];
-                if (percentage >= "85%" || percentage === "100%") {
-                    status = "Excellent"
-                } else if (percentage >= "75%") {
-                    status = "Good"
-                } else {
-                    status = "Try to improve"
-                }
+                delete attendance['totalClass'];
+                delete attendance['totalPresent'];
+                delete attendance['subjectCode'];
                 attendanceSubjects.push(attendance);
             }
             data['Summary'] = attendanceSubjects;
@@ -180,14 +175,14 @@ function getStudentData(username, password) {
                                     break;
                             }
                         })
-                        Overall = []
-                        for (const [key, value] of Object.entries
+                        let Overall = $(`table td:nth-child(${topicIndex['Overall Attendance']})`).text().trim()//overall percentage
+                        /**for (const [key, value] of Object.entries
                             (topicIndex)) {
                             currentOverall = {}
                             currentOverall['key'] = key;
                             currentOverall['percentage'] = $(`table td:nth-child(${value})`).text().trim();
                             Overall.push(currentOverall);
-                        }
+                        }**/
                         Student = {}
                         Student['Name'] = $("table td:nth-child(3)").text().trim()
                         Student['Branch'] = $("table td:nth-child(1)").text().trim()
@@ -325,3 +320,4 @@ function getCombinedAttendance(username, password, metadata) {
 
 
 exports.isValidLogin = isValidLogin;
+exports.getAttendance = getAttendance;

@@ -2,7 +2,17 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
 url = 'https://sctce.etlab.in/user/login';
-test = 'http://localhost:8081/testurl';
+test = 'http://localhost:8000/testurl';
+
+
+/**
+ * TODO
+ * IMPORTANT. HARDCODED YEAR->SEMESTER VALUE MAPPING FOR TEMPERORY USE.
+ * TO BE REPLACED WITH APPROPRIATE DYNAMIC FUNCTION LATER. Will not work for year back students.
+ * 
+ */
+
+ const SEM_VALUE = {'16':'8', '17':'','18':'4','19':'2'}
 
 function getAuthorizationCookie(registerNumber, password) {
     return new Promise((resolve, reject) => {
@@ -38,7 +48,9 @@ function getAttendanceHTML(registerNumber, password) {
     return new Promise((resolve, reject) => {
         getAuthorizationCookie(registerNumber, password)
             .then((cookie) => {
-                fetch('https://sctce.etlab.in/student/results', {
+                year = registerNumber.substr(0,2);
+                let sem_id = SEM_VALUE[year];
+                fetch(`https://sctce.etlab.in/student/results?sem_id=${sem_id}`, {
                     method: 'GET',
                     headers: {
                         Host: 'sctce.etlab.in',
@@ -146,13 +158,21 @@ function getStudentData(username, password) {
     return new Promise((resolve, reject) => {
         getAuthorizationCookie(username, password)
             .then(cookie => {
-                fetch('https://sctce.etlab.in/ktuacademics/student/viewattendancesubjectdutyleave/20',
-                    {
-                        method: 'GET',
+                //TODO: Fix Semester Value fetch
+                year = username.substr(0,2);
+                let sem_id = SEM_VALUE[year];
+                let post_body = sem_id === '' ? '' : `semester=${sem_id}`;
+                fetch('https://sctce.etlab.in/ktuacademics/student/viewattendancesubjectdutyleave/20',  
+                {
+                        method: 'POST',
                         headers: {
                             Cookie: cookie,
-                            Host: 'sctce.etlab.in'
-                        }
+                            Host: 'sctce.etlab.in',
+                            Origin: 'https://sctce.etlab.in',
+                            Referer: 'https://sctce.etlab.in/ktuacademics/student/viewattendancesubject/20',
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: post_body
                     },
                 )
                     .then((response) => {
